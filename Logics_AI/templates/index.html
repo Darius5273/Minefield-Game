@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineFOL Game</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>MineFOL Game</h1>
+        <div id="game-status" style="height: 25px"> {{ message }}</div>
+
+    <table class="grid-table" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <td class="empty-corner"></td>
+                {% for col in range(grid_size) %}
+                    <td class="col-number">{{ col + 1 }}</td>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in range(grid_size) %}
+            <tr>
+                <td class="row-number">{{ i + 1 }}</td>
+                {% for j in range(grid_size) %}
+                <td
+                    class="cell"
+                    id="cell-{{ i }}-{{ j }}"
+                    style="background-color: {{ cell_color[i][j] }};"
+                    data-x="{{ i }}"
+                    data-y="{{ j }}"
+                ></td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+
+        <div id="controls">
+            <button id="reveal-answer">Show Answer</button>
+            <button id="reset-button">Reset Game</button>
+            <button id="instructions-button">Show Instructions</button>
+            <button id="safe-mode-button" onclick="toggleButton(this)">Safe Mode</button>
+            <button id="new-grid-button" >New Game</button>
+        </div>
+
+        <div id="instructions" style="display: none;">
+            <p>
+                Minefield is a game played on an 8x8 board. You start in the upper left corner and navigate using arrow keys.
+                Your current location is green. If you move into a mine, the game ends. Messages help locate mines.
+                Messages use relational logic (e.g., `mine(2,3)` = mine at row 2, column 3). Avoid stepping on mines.
+                There are 4 mines. Good luck!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let gameOver = false;
+        $(`#cell-0-0`).addClass("message-icon");
+
+
+        document.addEventListener("keydown", function(event) {
+            if (gameOver) return;
+
+            if (event.key.includes("Arrow")) {
+                const direction = event.key.replace("Arrow", "").toLowerCase();
+                $.ajax({
+                    url: "/move_agent",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ direction }),
+                    success: function(response) {
+                        const { status, position, colors } = response;
+                        const [i,j] = position;
+                        if (status === "Mine Hit") {
+                            $("#game-status").text("Game Over! You stepped on a mine.");
+                            $(`#cell-${i}-${j}`).addClass("mine");
+                            gameOver = true;
+                        }
+                        else
+                            if(status !== "Moved"){
+                                $("#game-status").text(status);
+                                $(`#cell-${i}-${j}`).addClass("message-icon");
+                            }
+                        else $("#game-status").text("");
+
+                        updateCellColors(colors);
+
+                    },
+                    error: function (xhr, status, error) {
+                console.error("Error in AJAX request:", status, error);
+            }
+                });
+            }
+        });
+
+            $("#new-grid-button").click(function () {
+        $.ajax({
+            url: "/new_game",
+            type: "POST",
+            success: function (response) {
+                gameOver = false;
+                resetCells(response.cell_color);
+                $("#game-status").text(response.message);
+                $(`#safe-mode-button`).removeClass('pressed');
+            }
+        });
+    });
+
+        $("#reset-button").click(function() {
+            $.ajax({
+                url: "/reset_game",
+                type: "POST",
+                success: function(response) {
+                    $("#game-status").text(response.message);
+                    gameOver = false;
+                    resetCells(response.colors);
+                    $(`#safe-mode-button`).removeClass('pressed');
+                }
+            });
+        });
+
+        $("#reveal-answer").click(function() {
+            $.ajax({
+                url: "/reveal_answer",
+                type: "POST",
+                success: function(response) {
+                    gameOver = true;
+                    const { grid } = response;
+                    for (let i = 0; i < grid.length; i++) {
+                        for (let j = 0; j < grid[i].length; j++) {
+                            const cell = $(`#cell-${i}-${j}`);
+                            cell.css("background-color", "white");
+                            if (grid[i][j] === 'm') {
+                                cell.addClass("mine");
+                            } else if (grid[i][j] === 'c') {
+                                cell.addClass("message-icon");
+                            }
+                        }
+                    }
+
+                }
+            });
+        });
+
+        $("#instructions-button").click(function() {
+            const instructions = $("#instructions");
+            if (instructions.is(":visible")) {
+                instructions.hide();
+                $(this).text("Show Instructions");
+            } else {
+                instructions.show();
+                $(this).text("Hide Instructions");
+            }
+        });
+
+        $("#safe-mode-button").click(function () {
+            $.ajax({
+                url: "/toggle_safe_mode",
+                type: "POST",
+                success: function (response) {
+                }
+            });
+        });
+
+
+        $(".grid-table").on("dblclick", ".cell", function () {
+            if (gameOver) return;
+
+            const x = $(this).data("x");
+            const y = $(this).data("y");
+
+            $.ajax({
+                url: "/check_cell",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ x, y }),
+                success: function (response) {
+                    const { has_mine, message, cell_color, game_over } = response;
+
+                    $(`#cell-${x}-${y}`).css("background-color", cell_color[x][y]);
+
+                    $("#game-status").text(message);
+
+                    if (game_over === true) {
+                        gameOver = true;
+                    }
+                    if (has_mine === true)
+                        $(`#cell-${x}-${y}`).addClass("mine");
+
+                }
+            });
+        });
+
+
+        function updateCellColors(cell_colors) {
+            for (let i = 0; i < cell_colors.length; i++) {
+                for (let j = 0; j < cell_colors[i].length; j++) {
+                    $(`#cell-${i}-${j}`).css("background-color", cell_colors[i][j]);
+                }
+            }
+        }
+
+        function resetCells(cell_colors) {
+            for (let i = 0; i < cell_colors.length; i++) {
+                for (let j = 0; j < cell_colors[i].length; j++) {
+                    $(`#cell-${i}-${j}`).css("background-color", cell_colors[i][j]);
+                    $(`#cell-${i}-${j}`).removeClass("mine");
+                    $(`#cell-${i}-${j}`).removeClass("message-icon");
+
+                }
+            }
+            $(`#cell-0-0`).addClass("message-icon");
+        }
+        function toggleButton(button) {
+            button.classList.toggle('pressed');
+        }
+        function  resetSafeButton(button)
+        {
+            $(button).removeClass('pressed');
+        }
+
+    </script>
+</body>
+</html>

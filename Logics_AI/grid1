@@ -1,0 +1,10 @@
+0 0 c ¬mine(1,2) ∧ ¬mine(2,1)
+1 0 c ∀x.∀y.(mine(x+2,y) ⇒ mine(x,y))
+4 1 c ∀x.∀y.(mine(x,y) ↔ mine(y,x))
+7 0 c ∀x.∀y.((x+y = 9) ⇒ ¬mine(x, y))
+0 6 c ∃x.(mine(x,x))
+1 4 c ¬mine(2, 6)
+1 3 m
+3 1 m
+3 3 m
+1 1 m

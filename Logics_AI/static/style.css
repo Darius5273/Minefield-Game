@@ -1,0 +1,84 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+.container {
+    display: inline-block;
+}
+
+.grid-table {
+    border-collapse: collapse;
+    margin: auto;
+}
+
+.cell {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid dimgray;
+    background-color: black;
+}
+
+.col-number {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-weight: bold;
+    vertical-align: middle;
+    background-color: #ddd;
+}
+
+.row-number {
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    font-weight: bold;
+    vertical-align: middle;
+    background-color: #ddd;
+}
+
+.empty-corner {
+    width: 50px;
+    height: 50px;
+    background-color: #ddd;
+}
+
+button {
+    padding: 10px 15px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+#instructions {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f4f4f4;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.pressed{
+    background-color: #007BFF;
+    color: white;
+    border: 2px solid #0056b3;
+}
+
+.message-icon {
+    width: 50px;
+    height: 50px;
+    background-image: url("/static/message-icon.png");
+}
+
+.mine {
+    background-image: url('/static/mine-icon.png');
+    background-size: cover;
+}
