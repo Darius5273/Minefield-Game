@@ -3,7 +3,7 @@
 ## Overview  
 **MineFOL** is a logic-driven puzzle game where players must use **First-Order Logic (FOL) clues** to uncover the locations of hidden mines on an **8x8 grid**. The game challenges players' deductive reasoning by providing logical statements that hint at **mine locations** and **safe cells**.  
 
-This project implements the **logic mechanisms** of MineFOL using the **Prover9 tool**, an automated theorem prover that helps deduce safe moves based on revealed information. The project was implemented in Pycharm using python for back-end and HTML, CSS and Javascript for  front-end.
+This project implements the **logic mechanisms** of MineFOL using the **Prover9 tool**, an automated theorem prover that helps deduce safe moves based on revealed information. The project was implemented in **Pycharm** using **python** for back-end and **HTML, CSS and Javascript** for  front-end.
 
 ## Objective  
 The goal is to correctly **identify the four mines** hidden in the grid **without stepping on a mine or incorrectly marking a safe cell**.  
